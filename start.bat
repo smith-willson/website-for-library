@@ -1,5 +1,5 @@
 @echo off
-cd /d "%~dp0"
+cd /d "C:\Users\%USERNAME%\lms"
 echo Starting LMS at http://localhost:3000
 node server.js
 pause
