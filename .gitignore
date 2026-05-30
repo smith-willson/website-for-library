@@ -1,0 +1,8 @@
+node_modules/
+.env
+library.db
+library.db-shm
+library.db-wal
+*.log
+.DS_Store
+Thumbs.db

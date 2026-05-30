@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LMS — Library & Resource Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ink:       #0d0f14;
+  --paper:     #f5f0e8;
+  --cream:     #ede8db;
+  --gold:      #c8973a;
+  --gold-lt:   #e8b95a;
+  --rust:      #b84c2a;
+  --teal:      #2a6b6e;
+  --teal-lt:   #3d9ba0;
+  --muted:     #6b6457;
+  --border:    #cfc8b8;
+  --white:     #ffffff;
+  --success:   #2d7a47;
+  --danger:    #b83232;
+  --warning:   #c47d1a;
+  --shadow:    0 4px 24px rgba(13,15,20,.10);
+  --shadow-lg: 0 8px 40px rgba(13,15,20,.16);
+  --r:         8px;
+  --r-lg:      16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--cream)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ===== LOGIN PAGE ===== */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:var(--ink);position:relative;overflow:hidden}
+#login-page::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(255,255,255,.03) 59px,rgba(255,255,255,.03) 60px),
+  repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(255,255,255,.03) 59px,rgba(255,255,255,.03) 60px)}
+.login-card{background:var(--paper);border-radius:var(--r-lg);padding:48px 44px;width:min(420px,92vw);
+  box-shadow:var(--shadow-lg);position:relative;z-index:1;animation:slideUp .5s ease}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo .logo-icon{font-size:40px;display:block;margin-bottom:8px}
+.login-logo h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--ink)}
+.login-logo p{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);
+  background:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);
+  transition:border-color .2s,box-shadow .2s;outline:none}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  border-color:var(--teal);box-shadow:0 0 0 3px rgba(42,107,110,.12)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--r);
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;
+  border:none;transition:all .18s;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--teal);color:var(--white)}
+.btn-primary:hover{background:var(--teal-lt);transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn-gold{background:var(--gold);color:var(--white)}
+.btn-gold:hover{background:var(--gold-lt);transform:translateY(-1px)}
+.btn-danger{background:var(--rust);color:var(--white)}
+.btn-danger:hover{opacity:.88}
+.btn-ghost{background:transparent;color:var(--teal);border:1.5px solid var(--teal)}
+.btn-ghost:hover{background:var(--teal);color:var(--white)}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-block{width:100%;justify-content:center}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ===== MAIN SHELL ===== */
+#app{display:none;min-height:100vh;flex-direction:column}
+.topbar{background:var(--ink);color:var(--white);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-lg)}
+.topbar-brand{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
+.topbar-brand span{opacity:.5;font-size:14px}
+.topbar-user{display:flex;align-items:center;gap:14px}
+.user-badge{background:var(--gold);color:var(--white);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;text-transform:capitalize}
+
+.layout{display:flex;flex:1;min-height:calc(100vh - 60px)}
+.sidebar{width:220px;background:var(--cream);border-right:1px solid var(--border);padding:20px 0;
+  position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;flex-shrink:0}
+.nav-section{padding:4px 16px 8px;font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin-top:12px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13.5px;font-weight:500;
+  color:var(--ink);cursor:pointer;border-left:3px solid transparent;transition:all .15s;border-radius:0 6px 6px 0;margin:1px 8px 1px 0}
+.nav-item:hover{background:var(--border);color:var(--teal)}
+.nav-item.active{background:var(--teal);color:var(--white);border-left-color:var(--gold)}
+.nav-item .ni{font-size:16px}
+
+.main{flex:1;padding:28px;overflow-y:auto;max-height:calc(100vh - 60px)}
+.page{display:none;animation:fadeIn .3s ease}
+.page.active{display:block}
+
+/* ===== PAGE HEADER ===== */
+.page-header{margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.page-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--ink)}
+.page-title small{display:block;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:400;color:var(--muted);margin-top:2px}
+
+/* ===== STAT CARDS ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 20px;
+  transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.c-teal::after{background:var(--teal)}
+.stat-card.c-gold::after{background:var(--gold)}
+.stat-card.c-rust::after{background:var(--rust)}
+.stat-card.c-success::after{background:var(--success)}
+.stat-icon{font-size:28px;margin-bottom:10px}
+.stat-val{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--ink)}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
+
+/* ===== TABLE ===== */
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+.table-toolbar{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.table-search{display:flex;align-items:center;gap:8px}
+.table-search input{padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;width:220px}
+.table-search input:focus{border-color:var(--teal)}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--cream)}
+th{padding:12px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:13.5px;border-bottom:1px solid rgba(207,200,184,.4);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(42,107,110,.03)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:capitalize}
+.badge-available{background:rgba(45,122,71,.12);color:var(--success)}
+.badge-borrowed{background:rgba(184,76,42,.12);color:var(--rust)}
+.badge-partial{background:rgba(196,125,26,.12);color:var(--warning)}
+.badge-student{background:rgba(42,107,110,.12);color:var(--teal)}
+.badge-teacher{background:rgba(200,151,58,.12);color:var(--gold)}
+.badge-staff{background:rgba(107,100,87,.12);color:var(--muted)}
+.badge-premium{background:rgba(184,76,42,.12);color:var(--rust)}
+.badge-overdue{background:rgba(184,50,50,.15);color:var(--danger)}
+.badge-active{background:rgba(45,122,71,.12);color:var(--success)}
+.badge-deleted{background:rgba(184,50,50,.12);color:var(--danger)}
+.badge-book{background:#e8f0ff;color:#2a52be}
+.badge-dvd{background:#ffe8f0;color:#be2a5a}
+.badge-audiobook{background:#e8fff0;color:#2abe6b}
+.badge-magazine{background:#fff8e8;color:#be8a2a}
+.badge-newspaper{background:#f0e8ff;color:#6a2abe}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state .es-icon{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,15,20,.55);z-index:200;
+  align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--paper);border-radius:var(--r-lg);padding:32px 30px;width:min(540px,100%);
+  max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideUp .25s ease}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.modal-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);padding:4px;border-radius:4px}
+.modal-close:hover{color:var(--ink)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-hint{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ===== ALERTS ===== */
+.alert{padding:12px 16px;border-radius:var(--r);font-size:13.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.alert-success{background:rgba(45,122,71,.1);border:1px solid rgba(45,122,71,.25);color:var(--success)}
+.alert-error{background:rgba(184,50,50,.1);border:1px solid rgba(184,50,50,.25);color:var(--danger)}
+.alert-info{background:rgba(42,107,110,.1);border:1px solid rgba(42,107,110,.25);color:var(--teal)}
+
+/* ===== TYPE FILTER TABS ===== */
+.filter-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.filter-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--white);color:var(--muted);transition:all .15s}
+.filter-tab:hover,.filter-tab.active{background:var(--teal);color:var(--white);border-color:var(--teal)}
+
+/* ===== PROFILE CARD ===== */
+.profile-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px;margin-bottom:20px}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--teal);color:var(--white);
+  display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:16px}
+.profile-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
+.profile-meta{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+.profile-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:16px}
+.detail-item label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.detail-item p{font-size:14px;font-weight:500;margin-top:3px}
+
+/* ===== MINI CHART ===== */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:28px}
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px}
+.chart-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:16px}
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:10px;font-size:12px}
+.bar-label{width:90px;text-transform:capitalize;font-weight:500;color:var(--muted)}
+.bar-track{flex:1;background:var(--cream);border-radius:4px;height:18px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:var(--teal);display:flex;align-items:center;padding-left:6px;color:white;font-size:10px;font-weight:700;transition:width .6s ease;min-width:24px}
+
+/* ===== TOAST ===== */
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast-item{background:var(--ink);color:var(--white);padding:12px 18px;border-radius:var(--r);font-size:13.5px;
+  box-shadow:var(--shadow-lg);animation:slideUp .3s ease;opacity:1;transition:opacity .3s;max-width:320px}
+.toast-item.success{border-left:3px solid var(--success)}
+.toast-item.error{border-left:3px solid var(--danger)}
+.toast-item.info{border-left:3px solid var(--gold)}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{padding:16px}
+  .form-row{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-icon">📚</span>
+      <h1>LMS</h1>
+      <p>Library & Resource Management</p>
+    </div>
+    <div id="login-alert"></div>
+    <div id="login-form">
+      <div class="form-group">
+        <label>Email or Username</label>
+        <input type="text" id="login-user" placeholder="you@gmail.com or username" autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password"/>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="doLogin()">Sign In</button>
+      <div id="google-signin-wrap" style="margin-top:14px;display:none">
+        <p style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:10px">— or —</p>
+        <div id="google-signin-btn" style="display:flex;justify-content:center"></div>
+      </div>
+      <hr style="margin:20px 0;border-color:var(--border)"/>
+      <p style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:14px">Don't have an account?</p>
+      <button class="btn btn-ghost btn-block" onclick="showRegisterModal()">Register</button>
+    </div>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:20px;font-family:'DM Mono',monospace">Guest: view resources without login ↓</p>
+    <button class="btn btn-sm" style="margin:8px auto 0;display:block;color:var(--muted)" onclick="guestView()">Browse Resources</button>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand">📚 <span style="color:white;font-weight:900">LMS</span> <span>/ Library Management</span></div>
+    <div class="topbar-user">
+      <span id="topbar-name" style="font-size:13px;opacity:.7"></span>
+      <span id="topbar-badge" class="user-badge"></span>
+      <button class="btn btn-sm btn-ghost" style="border-color:rgba(255,255,255,.3);color:white" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" data-page="dashboard" onclick="nav(this)"><span class="ni">📊</span> Dashboard</div>
+
+      <div class="nav-section">Resources</div>
+      <div class="nav-item" data-page="resources" onclick="nav(this)"><span class="ni">📖</span> All Resources</div>
+      <div class="nav-item user-only" data-page="borrow" onclick="nav(this)"><span class="ni">📤</span> Borrow / Return</div>
+      <div class="nav-item" data-page="history" onclick="nav(this)"><span class="ni">🕓</span> Borrow History</div>
+
+      <div class="nav-section admin-only" style="display:none">Admin</div>
+      <div class="nav-item admin-only" style="display:none" data-page="members" onclick="nav(this)"><span class="ni">👥</span> Members</div>
+      <div class="nav-item admin-only" style="display:none" data-page="issued" onclick="nav(this)"><span class="ni">📋</span> Issued Resources</div>
+      <div class="nav-item admin-only" style="display:none" data-page="fines" onclick="nav(this)"><span class="ni">💰</span> Fines & Overdue</div>
+      <div class="nav-item admin-only" style="display:none" data-page="donations" onclick="nav(this)"><span class="ni">🎁</span> Donations</div>
+
+      <div class="nav-section">Account</div>
+      <div class="nav-item" data-page="profile" onclick="nav(this)"><span class="ni">👤</span> My Profile</div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div class="page-title">Dashboard <small>Library overview at a glance</small></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm admin-only" style="display:none" onclick="exportReport()">⬇ Export Report</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+          </div>
+        </div>
+        <div class="stat-grid" id="stat-grid"></div>
+        <div class="chart-grid" id="chart-grid"></div>
+      </div>
+
+      <!-- RESOURCES -->
+      <div class="page" id="page-resources">
+        <div class="page-header">
+          <div class="page-title">Resources <small>Books, DVDs, Audiobooks, Magazines, Newspapers</small></div>
+          <button class="btn btn-primary" id="btn-add-resource" style="display:none" onclick="openAddResource()">+ Add Resource</button>
+        </div>
+        <div class="filter-tabs" id="resource-filters">
+          <div class="filter-tab active" onclick="filterResources(this,'')">All</div>
+          <div class="filter-tab" onclick="filterResources(this,'book')">📖 Books</div>
+          <div class="filter-tab" onclick="filterResources(this,'dvd')">🎬 DVDs</div>
+          <div class="filter-tab" onclick="filterResources(this,'audiobook')">🎧 Audiobooks</div>
+          <div class="filter-tab" onclick="filterResources(this,'magazine')">📰 Magazines</div>
+          <div class="filter-tab" onclick="filterResources(this,'newspaper')">🗞️ Newspaper</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="table-search">
+              <input type="text" id="res-search" placeholder="Search title, author, category…" oninput="searchResources()"/>
+            </div>
+            <span id="res-count" style="font-size:13px;color:var(--muted)"></span>
+          </div>
+          <div style="overflow-x:auto"><table id="res-table"><thead><tr>
+            <th>ID</th><th>Title</th><th>Type</th><th>Author / Creator</th>
+            <th>Category</th><th>Copies</th><th>Status</th><th>Actions</th>
+          </tr></thead><tbody id="res-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- BORROW/RETURN -->
+      <div class="page" id="page-borrow">
+        <div class="page-header">
+          <div class="page-title">Borrow / Return <small>Check out or return resources</small></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:700px" id="borrow-return-grid">
+          <div class="table-wrap" style="padding:24px">
+            <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:18px">📤 Borrow a Resource</h3>
+            <div class="form-group">
+              <label>Resource ID</label>
+              <input type="number" id="borrow-id" placeholder="e.g. 1"/>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="doBorrow()">Borrow</button>
+          </div>
+          <div class="table-wrap" style="padding:24px">
+            <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:18px">📥 Return a Resource</h3>
+            <div class="form-group">
+              <label>Resource ID</label>
+              <input type="number" id="return-id" placeholder="e.g. 1"/>
+            </div>
+            <button class="btn btn-gold btn-block" onclick="doReturn()">Return</button>
+          </div>
+        </div>
+        <div id="borrow-result" style="margin-top:16px;max-width:700px"></div>
+        <div style="margin-top:24px">
+          <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px">My Active Borrows</h3>
+          <div class="table-wrap">
+            <div style="overflow-x:auto"><table><thead><tr>
+              <th>Resource</th><th>Type</th><th>Borrowed</th><th>Due Date</th><th>Status</th>
+            </tr></thead><tbody id="my-borrows"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BORROW HISTORY -->
+      <div class="page" id="page-history">
+        <div class="page-header">
+          <div class="page-title">Borrow History <small>All borrowing records</small></div>
+        </div>
+        <div class="table-wrap">
+          <div style="overflow-x:auto"><table><thead><tr>
+            <th>User</th><th>Resource</th><th>Type</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Fine</th>
+          </tr></thead><tbody id="history-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- MEMBERS (admin) -->
+      <div class="page" id="page-members">
+        <div class="page-header">
+          <div class="page-title">Members <small>All registered users — search, view, deposit, delete</small></div>
+          <button class="btn btn-primary" onclick="showRegisterModal()">+ Register Member</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="table-search">
+              <input type="text" id="mem-search" placeholder="Search name or username…" oninput="searchMembers()"/>
+            </div>
+            <div class="table-search" style="max-width:160px">
+              <input type="number" id="mem-id-search" placeholder="User ID…" onkeydown="if(event.key==='Enter')searchMemberById()"/>
+            </div>
+            <button class="btn btn-sm btn-ghost" onclick="searchMemberById()">Search ID</button>
+          </div>
+          <div style="overflow-x:auto"><table id="mem-table"><thead><tr>
+            <th>ID</th><th>Name</th><th>Username</th><th>Type</th><th>Details</th><th>Balance</th><th>Status</th><th>Actions</th>
+          </tr></thead><tbody id="mem-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ISSUED (admin) -->
+      <div class="page" id="page-issued">
+        <div class="page-header">
+          <div class="page-title">Issued Resources <small>Currently borrowed items</small></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadIssued()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <div style="overflow-x:auto"><table><thead><tr>
+            <th>ID</th><th>Title</th><th>Type</th><th>Total Copies</th><th>Available</th><th>Issued</th>
+          </tr></thead><tbody id="issued-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- FINES (admin) -->
+      <div class="page" id="page-fines">
+        <div class="page-header">
+          <div class="page-title">Fines & Overdue <small>Fine management — overdue resources with pending fines</small></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadFines()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <div style="overflow-x:auto"><table><thead><tr>
+            <th>User ID</th><th>User</th><th>Resource</th><th>Borrowed</th><th>Due Date</th><th>Days Overdue</th><th>Pending Fine</th>
+          </tr></thead><tbody id="fines-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- DONATIONS (admin) -->
+      <div class="page" id="page-donations">
+        <div class="page-header">
+          <div class="page-title">Resource Donations <small>Accept donated resources and reward donor balance</small></div>
+        </div>
+        <div class="table-wrap" style="padding:24px;max-width:720px">
+          <p style="font-size:14px;color:var(--muted);margin-bottom:18px">Record a resource donation from a member. The resource is added to the library and the donor receives <strong>Rs. 100</strong> reward (same as C++ admin).</p>
+          <div class="form-row">
+            <div class="form-group"><label>Donor User ID</label><input type="number" id="don-user-id" placeholder="e.g. 42"/></div>
+            <div class="form-group"><label>Resource Type</label>
+              <select id="don-type" onchange="updateDonFields()">
+                <option value="book">Book</option><option value="dvd">DVD</option>
+                <option value="audiobook">Audiobook</option><option value="magazine">Magazine</option>
+                <option value="newspaper">Newspaper</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Title</label><input type="text" id="don-title"/></div>
+            <div class="form-group"><label>Author / Creator</label><input type="text" id="don-author"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Category</label><input type="text" id="don-category"/></div>
+            <div class="form-group"><label>Copies</label><input type="number" id="don-copies" value="1" min="1"/></div>
+          </div>
+          <div id="don-extra"></div>
+          <button class="btn btn-primary" onclick="submitDonation()">Accept Donation</button>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="page" id="page-profile">
+        <div class="page-header">
+          <div class="page-title">My Profile</div>
+        </div>
+        <div class="profile-card" id="profile-info"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:600px">
+          <div class="table-wrap" style="padding:22px">
+            <h3 style="font-family:'Playfair Display',serif;margin-bottom:16px;font-size:17px">💳 Deposit Funds</h3>
+            <div class="form-group">
+              <label>Amount (Rs.)</label>
+              <input type="number" id="deposit-amount" placeholder="100"/>
+            </div>
+            <button class="btn btn-gold btn-block" onclick="doDeposit()">Deposit</button>
+          </div>
+          <div class="table-wrap" style="padding:22px">
+            <h3 style="font-family:'Playfair Display',serif;margin-bottom:16px;font-size:17px">🔒 Change Password</h3>
+            <div class="form-group">
+              <label>Current Password</label>
+              <input type="password" id="old-pass" placeholder="Current"/>
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" id="new-pass" placeholder="New"/>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="doChangePass()">Update</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Register Modal -->
+<div class="modal-overlay" id="modal-register">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Create Account</h2>
+      <button class="modal-close" onclick="closeModal('modal-register')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>User Type</label>
+      <select id="reg-type" onchange="updateRegFields()">
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
+        <option value="staff">Staff</option>
+        <option value="premium">Premium Member</option>
+      </select>
+    </div>
+    <div id="reg-otp-section">
+      <div class="form-group">
+        <label>Gmail / Email <span style="color:var(--rust)">*</span></label>
+        <input type="email" id="reg-email" placeholder="you@gmail.com"/>
+      </div>
+      <div class="form-row" id="reg-otp-row">
+        <div class="form-group"><label>OTP Code</label><input type="text" id="reg-otp" placeholder="6-digit code" maxlength="6"/></div>
+        <div class="form-group" style="display:flex;align-items:flex-end;gap:8px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="sendRegisterOtp()">Send OTP</button>
+          <button type="button" class="btn btn-gold btn-sm" onclick="verifyRegisterOtp()">Verify</button>
+        </div>
+      </div>
+      <p id="reg-otp-status" style="font-size:12px;color:var(--muted);margin-bottom:12px">Verify your email with OTP before completing registration.</p>
+    </div>
+    <div id="reg-details" style="opacity:.5;pointer-events:none">
+    <div class="form-row">
+      <div class="form-group"><label>Full Name</label><input type="text" id="reg-name"/></div>
+      <div class="form-group"><label>Username</label><input type="text" id="reg-username"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Password</label><input type="password" id="reg-pass"/></div>
+      <div class="form-group"><label>Initial Balance</label><input type="number" id="reg-balance" value="0"/></div>
+    </div>
+    <div class="form-group"><label>Address</label><input type="text" id="reg-address"/></div>
+    <div id="reg-extra"></div>
+    </div>
+    <div style="margin-top:8px"><button class="btn btn-primary btn-block" onclick="doRegister()">Register</button></div>
+  </div>
+</div>
+
+<!-- Add Resource Modal -->
+<div class="modal-overlay" id="modal-resource">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="res-modal-title">Add Resource</h2>
+      <button class="modal-close" onclick="closeModal('modal-resource')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Resource Type</label>
+      <select id="res-type" onchange="updateResFields()">
+        <option value="book">📖 Book</option>
+        <option value="dvd">🎬 DVD</option>
+        <option value="audiobook">🎧 Audiobook</option>
+        <option value="magazine">📰 Magazine</option>
+        <option value="newspaper">🗞️ Newspaper</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Title</label><input type="text" id="res-title"/></div>
+      <div class="form-group"><label>Author / Creator</label><input type="text" id="res-author"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Category</label><input type="text" id="res-category"/></div>
+      <div class="form-group"><label>Total Copies</label><input type="number" id="res-copies" value="1" min="1"/></div>
+    </div>
+    <div id="res-extra"></div>
+    <div style="margin-top:8px"><button class="btn btn-primary btn-block" onclick="submitResource()">Save Resource</button></div>
+  </div>
+</div>
+
+<!-- User Detail Modal (admin) -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h2 class="modal-title">Member Details</h2>
+      <button class="modal-close" onclick="closeModal('modal-user')">✕</button>
+    </div>
+    <div id="user-detail-body"></div>
+    <div id="user-borrow-history" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<!-- Admin Deposit Modal -->
+<div class="modal-overlay" id="modal-deposit">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2 class="modal-title">Deposit for Member</h2>
+      <button class="modal-close" onclick="closeModal('modal-deposit')">✕</button>
+    </div>
+    <p id="deposit-user-label" style="font-size:14px;color:var(--muted);margin-bottom:14px"></p>
+    <div class="form-group">
+      <label>Amount (Rs.)</label>
+      <input type="number" id="admin-deposit-amount" placeholder="100"/>
+    </div>
+    <button class="btn btn-gold btn-block" onclick="submitAdminDeposit()">Deposit</button>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast"></div>
+
+<script>
+// ===== STATE =====
+let currentUser = null;
+let allResources = [];
+let allMembers = [];
+let registrationToken = null;
+let regEmailVerified = false;
+let authSettings = { googleEnabled: false, googleClientId: '' };
+let resFilter = '';
+let editingResourceID = null;
+
+// ===== HELPERS =====
+const fmt = d => d ? new Date(d*1000).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const fmtCur = n => `Rs. ${parseFloat(n||0).toFixed(0)}`;
+const isAdmin = () => currentUser?.type === 'admin';
+
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.textContent = msg;
+  t.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 3000);
+}
+
+function showAlert(id, msg, type='error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => { if(el) el.innerHTML=''; }, 5000);
+}
+
+async function api(url, opts={}) {
+  const res = await fetch(url, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    ...opts
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function badgeStatus(s) {
+  const m = {Available:'available',Borrowed:'borrowed','Partially Available':'partial'};
+  return `<span class="badge badge-${m[s]||'available'}">${s}</span>`;
+}
+function badgeType(t) {
+  return `<span class="badge badge-${t}">${t}</span>`;
+}
+function badgeUserType(t) {
+  return `<span class="badge badge-${t}">${t}</span>`;
+}
+
+// ===== NAVIGATION =====
+function nav(el, pageName) {
+  const page = pageName || el.dataset.page;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('page-'+page)?.classList.add('active');
+  const loaders = {dashboard:loadDashboard,resources:loadResources,borrow:loadMyBorrows,history:loadHistory,members:loadMembers,issued:loadIssued,fines:loadFines,donations:initDonations,profile:loadProfile};
+  loaders[page]?.();
+}
+
+// ===== AUTH =====
+async function doLogin() {
+  const login = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value;
+  if (!login||!password) return showAlert('login-alert','Please enter email/username and password');
+  try {
+    const data = await api('/api/login',{method:'POST',body:JSON.stringify({login,password})});
+    currentUser = data.user;
+    showApp();
+  } catch(e) { showAlert('login-alert', e.message); }
+}
+
+async function initAuth() {
+  try {
+    authSettings = await api('/api/auth/config');
+    if (authSettings.googleEnabled && authSettings.googleClientId) {
+      document.getElementById('google-signin-wrap').style.display = '';
+      loadGoogleSignIn();
+    }
+  } catch(e) {}
+}
+
+function loadGoogleSignIn() {
+  if (window.google?.accounts?.id) {
+    initGoogleButton();
+    return;
+  }
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true;
+  s.defer = true;
+  s.onload = initGoogleButton;
+  document.head.appendChild(s);
+}
+
+function initGoogleButton() {
+  google.accounts.id.initialize({
+    client_id: authSettings.googleClientId,
+    callback: handleGoogleCredential
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('google-signin-btn'),
+    { theme: 'outline', size: 'large', width: 280 }
+  );
+}
+
+async function handleGoogleCredential(resp) {
+  try {
+    const data = await api('/api/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential: resp.credential })
+    });
+    currentUser = data.user;
+    showApp();
+  } catch(e) { showAlert('login-alert', e.message); }
+}
+
+async function sendRegisterOtp() {
+  const email = document.getElementById('reg-email').value.trim();
+  if (!email) return toast('Enter your email first','error');
+  try {
+    const r = await api('/api/auth/send-otp', { method:'POST', body:JSON.stringify({ email, purpose:'register' })});
+    document.getElementById('reg-otp-status').textContent = r.message;
+    document.getElementById('reg-otp-status').style.color = 'var(--success)';
+    toast('OTP sent to your email','success');
+  } catch(e) {
+    document.getElementById('reg-otp-status').textContent = e.message;
+    document.getElementById('reg-otp-status').style.color = 'var(--danger)';
+  }
+}
+
+async function verifyRegisterOtp() {
+  const email = document.getElementById('reg-email').value.trim();
+  const otp = document.getElementById('reg-otp').value.trim();
+  if (!email || !otp) return toast('Enter email and OTP','error');
+  try {
+    const r = await api('/api/auth/verify-otp', { method:'POST', body:JSON.stringify({ email, otp, purpose:'register' })});
+    registrationToken = r.registrationToken;
+    regEmailVerified = true;
+    document.getElementById('reg-otp-status').textContent = '✓ Email authorized — complete the form below';
+    document.getElementById('reg-otp-status').style.color = 'var(--success)';
+    document.getElementById('reg-details').style.opacity = '1';
+    document.getElementById('reg-details').style.pointerEvents = '';
+    document.getElementById('reg-email').readOnly = true;
+    toast('Email verified','success');
+  } catch(e) { toast(e.message,'error'); }
+}
+
+function resetRegisterOtp() {
+  registrationToken = null;
+  regEmailVerified = false;
+  document.getElementById('reg-otp-status').textContent = 'Verify your email with OTP before completing registration.';
+  document.getElementById('reg-otp-status').style.color = 'var(--muted)';
+  document.getElementById('reg-details').style.opacity = '.5';
+  document.getElementById('reg-details').style.pointerEvents = 'none';
+  document.getElementById('reg-email').readOnly = false;
+}
+
+initAuth();
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogout() {
+  try {
+    await api('/api/logout', { method: 'POST' });
+  } catch (e) {}
+  currentUser = null;
+  allResources = [];
+  allMembers = [];
+  registrationToken = null;
+  regEmailVerified = false;
+  document.getElementById('login-user').value = '';
+  const passEl = document.getElementById('login-pass');
+  passEl.value = '';
+  passEl.setAttribute('autocomplete', 'new-password');
+  document.getElementById('login-alert').innerHTML = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('app').style.flexDirection = 'column';
+  document.getElementById('topbar-name').textContent = currentUser.name;
+  document.getElementById('topbar-badge').textContent = currentUser.type;
+  // Show admin nav items
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin() ? '' : 'none';
+  });
+  document.querySelectorAll('.user-only').forEach(el => {
+    el.style.display = isAdmin() ? 'none' : '';
+  });
+  document.getElementById('btn-add-resource').style.display = isAdmin() ? '' : 'none';
+  if (isAdmin()) nav(document.querySelector('[data-page="dashboard"]'), 'dashboard');
+  else loadDashboard();
+}
+
+function guestView() {
+  currentUser = null;
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('app').style.flexDirection = 'column';
+  document.getElementById('topbar-name').textContent = 'Guest';
+  document.getElementById('topbar-badge').textContent = 'guest';
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display='none');
+  nav(document.querySelector('[data-page="resources"]'), 'resources');
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard() {
+  if (!isAdmin()) {
+    // User dashboard — show their profile and active borrows
+    const sg = document.getElementById('stat-grid');
+    if (!currentUser) return;
+    try {
+      const user = await api('/api/me');
+      const rules = {student:{limit:2,fine:10,days:7},teacher:{limit:3,fine:20,days:14},staff:{limit:4,fine:5,days:14},premium:{limit:5,fine:10,days:21},admin:{limit:0,fine:0,days:0}};
+      const r = rules[user.type]||rules.student;
+      sg.innerHTML = `
+        <div class="stat-card c-teal"><div class="stat-icon">💳</div><div class="stat-val">${fmtCur(user.balance)}</div><div class="stat-lbl">Your Balance</div></div>
+        <div class="stat-card c-gold"><div class="stat-icon">📅</div><div class="stat-val">${r.days} days</div><div class="stat-lbl">Borrow Duration</div></div>
+        <div class="stat-card c-rust"><div class="stat-icon">📚</div><div class="stat-val">${r.limit}</div><div class="stat-lbl">Daily Borrow Limit</div></div>
+        <div class="stat-card c-success"><div class="stat-icon">💸</div><div class="stat-val">Rs.${r.fine}/day</div><div class="stat-lbl">Fine Rate</div></div>
+      `;
+      document.getElementById('chart-grid').innerHTML = '';
+    } catch(e) {}
+    return;
+  }
+  try {
+    const s = await api('/api/stats');
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-card c-teal"><div class="stat-icon">👥</div><div class="stat-val">${s.totalUsers}</div><div class="stat-lbl">Total Members</div></div>
+      <div class="stat-card c-gold"><div class="stat-icon">📚</div><div class="stat-val">${s.totalResources}</div><div class="stat-lbl">Total Resources</div></div>
+      <div class="stat-card c-success"><div class="stat-icon">📤</div><div class="stat-val">${s.activeBorrows}</div><div class="stat-lbl">Active Borrows</div></div>
+      <div class="stat-card c-rust"><div class="stat-icon">⚠️</div><div class="stat-val">${s.overdueCount}</div><div class="stat-lbl">Overdue</div></div>
+      <div class="stat-card c-gold"><div class="stat-icon">🔖</div><div class="stat-val">${s.totalBorrows}</div><div class="stat-lbl">Total Borrows</div></div>
+      <div class="stat-card c-rust"><div class="stat-icon">💰</div><div class="stat-val">${fmtCur(s.totalFines)}</div><div class="stat-lbl">Total Fines Collected</div></div>
+    `;
+    const maxType = Math.max(...s.byType.map(x=>x.count),1);
+    const maxUser = Math.max(...s.usersByType.map(x=>x.count),1);
+    document.getElementById('chart-grid').innerHTML = `
+      <div class="chart-card">
+        <div class="chart-title">Resources by Type</div>
+        <div class="bar-chart">${s.byType.map(x=>`
+          <div class="bar-row">
+            <div class="bar-label">${x.type}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(x.count/maxType*100)}%">${x.count}</div></div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Members by Type</div>
+        <div class="bar-chart">${s.usersByType.map(x=>`
+          <div class="bar-row">
+            <div class="bar-label">${x.type}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(x.count/maxUser*100)}%;background:var(--gold)" >${x.count}</div></div>
+          </div>`).join('')}
+        </div>
+        ${s.mostBorrowed ? `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)">🏆 Most borrowed: <strong style="color:var(--ink)">${s.mostBorrowed.title}</strong> (${s.mostBorrowed.cnt}×)</div>` : ''}
+      </div>
+    `;
+  } catch(e) { toast('Failed to load stats','error'); }
+}
+
+// ===== RESOURCES =====
+async function loadResources() {
+  try {
+    allResources = await api('/api/resources');
+    renderResources();
+  } catch(e) { toast('Failed to load resources','error'); }
+}
+
+function renderResources() {
+  const search = document.getElementById('res-search').value.toLowerCase();
+  const filtered = allResources.filter(r =>
+    (!resFilter || r.type === resFilter) &&
+    (!search || r.title.toLowerCase().includes(search) || r.authorCreator.toLowerCase().includes(search) || r.category.toLowerCase().includes(search))
+  );
+  document.getElementById('res-count').textContent = `${filtered.length} item${filtered.length!==1?'s':''}`;
+  const tbody = document.getElementById('res-body');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="es-icon">📭</div><p>No resources found</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">#${r.resourceID}</td>
+      <td><strong>${r.title}</strong>${r.ISBN ? `<br/><span style="font-size:11px;color:var(--muted)">ISBN: ${r.ISBN}</span>` : ''}</td>
+      <td>${badgeType(r.type)}</td>
+      <td style="color:var(--muted)">${r.authorCreator||'—'}</td>
+      <td style="color:var(--muted)">${r.category||'—'}</td>
+      <td style="font-family:'DM Mono',monospace">${r.availableCopies} / ${r.totalCopies}</td>
+      <td>${badgeStatus(r.availabilityStatus)}</td>
+      <td class="actions">
+        ${isAdmin() ? `<button class="btn btn-sm btn-ghost" onclick="openEditResource(${r.resourceID})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteResource(${r.resourceID},'${r.title.replace(/'/g,"\\'")}')">Delete</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterResources(el, type) {
+  resFilter = type;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderResources();
+}
+function searchResources() { renderResources(); }
+
+function openAddResource() {
+  editingResourceID = null;
+  document.getElementById('res-modal-title').textContent = 'Add Resource';
+  document.getElementById('res-type').value = 'book';
+  ['res-title','res-author','res-category'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('res-copies').value = '1';
+  updateResFields();
+  openModal('modal-resource');
+}
+
+async function openEditResource(id) {
+  editingResourceID = id;
+  const r = await api(`/api/resources/${id}`);
+  document.getElementById('res-modal-title').textContent = 'Edit Resource';
+  document.getElementById('res-type').value = r.type;
+  document.getElementById('res-title').value = r.title;
+  document.getElementById('res-author').value = r.authorCreator;
+  document.getElementById('res-category').value = r.category;
+  document.getElementById('res-copies').value = r.totalCopies;
+  updateResFields(r);
+  openModal('modal-resource');
+}
+
+function updateResFields(data={}) {
+  const type = document.getElementById('res-type').value;
+  const fields = {
+    book: `<div class="form-row">
+      <div class="form-group"><label>ISBN</label><input type="text" id="extra-isbn" value="${data.ISBN||''}"/></div>
+      <div class="form-group"><label>Publisher</label><input type="text" id="extra-publisher" value="${data.publisher||''}"/></div>
+    </div>
+    <div class="form-group"><label>Year Published</label><input type="number" id="extra-year" value="${data.yearPublished||''}"/></div>`,
+    dvd: `<div class="form-row">
+      <div class="form-group"><label>Director</label><input type="text" id="extra-director" value="${data.director||''}"/></div>
+      <div class="form-group"><label>Genre</label><input type="text" id="extra-genre" value="${data.genre||''}"/></div>
+    </div>
+    <div class="form-group"><label>Duration (mins)</label><input type="number" id="extra-duration" value="${data.durationMinutes||''}"/></div>`,
+    audiobook: `<div class="form-row">
+      <div class="form-group"><label>Narrator</label><input type="text" id="extra-narrator" value="${data.narrator||''}"/></div>
+      <div class="form-group"><label>Format</label><input type="text" id="extra-format" placeholder="MP3, CD…" value="${data.format||''}"/></div>
+    </div>
+    <div class="form-group"><label>Duration (mins)</label><input type="number" id="extra-dur2" value="${data.durationMinutes||''}"/></div>`,
+    magazine: `<div class="form-row">
+      <div class="form-group"><label>Publisher</label><input type="text" id="extra-pub2" value="${data.publisher||''}"/></div>
+      <div class="form-group"><label>Publication Date</label><input type="text" id="extra-pubdate" placeholder="May 2025" value="${data.publicationDate||''}"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Volume No.</label><input type="number" id="extra-vol" value="${data.volumeNumber||''}"/></div>
+      <div class="form-group"><label>Issue No.</label><input type="number" id="extra-issue" value="${data.issueNumber||''}"/></div>
+    </div>`,
+    newspaper: `<div class="form-row">
+      <div class="form-group"><label>Publisher</label><input type="text" id="extra-pub3" value="${data.publisher||''}"/></div>
+      <div class="form-group"><label>Region</label><input type="text" id="extra-region" value="${data.region||''}"/></div>
+    </div>
+    <div class="form-group"><label>Edition Date</label><input type="text" id="extra-edition" placeholder="DD-MM-YYYY" value="${data.editionDate||''}"/></div>`
+  };
+  document.getElementById('res-extra').innerHTML = fields[type]||'';
+}
+
+async function submitResource() {
+  const type = document.getElementById('res-type').value;
+  const body = {
+    type,
+    title: document.getElementById('res-title').value,
+    authorCreator: document.getElementById('res-author').value,
+    category: document.getElementById('res-category').value,
+    totalCopies: parseInt(document.getElementById('res-copies').value)||1,
+  };
+  const g = id => document.getElementById(id)?.value || '';
+  if (type==='book')      { body.ISBN=g('extra-isbn'); body.publisher=g('extra-publisher'); body.yearPublished=parseInt(g('extra-year'))||0; }
+  if (type==='dvd')       { body.director=g('extra-director'); body.genre=g('extra-genre'); body.durationMinutes=parseInt(g('extra-duration'))||0; }
+  if (type==='audiobook') { body.narrator=g('extra-narrator'); body.format=g('extra-format'); body.durationMinutes=parseInt(g('extra-dur2'))||0; }
+  if (type==='magazine')  { body.publisher=g('extra-pub2'); body.publicationDate=g('extra-pubdate'); body.volumeNumber=parseInt(g('extra-vol'))||0; body.issueNumber=parseInt(g('extra-issue'))||0; }
+  if (type==='newspaper') { body.publisher=g('extra-pub3'); body.region=g('extra-region'); body.editionDate=g('extra-edition'); }
+
+  try {
+    if (editingResourceID) {
+      await api(`/api/resources/${editingResourceID}`, {method:'PUT',body:JSON.stringify(body)});
+      toast('Resource updated','success');
+    } else {
+      await api('/api/resources', {method:'POST',body:JSON.stringify(body)});
+      toast('Resource added','success');
+    }
+    closeModal('modal-resource');
+    loadResources();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function deleteResource(id, title) {
+  if (!confirm(`Delete "${title}"?`)) return;
+  try {
+    await api(`/api/resources/${id}`, {method:'DELETE'});
+    toast('Resource deleted','success');
+    loadResources();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+// ===== BORROW / RETURN =====
+async function doBorrow() {
+  const id = document.getElementById('borrow-id').value;
+  if (!id) return toast('Enter a resource ID','error');
+  try {
+    const r = await api('/api/borrow', {method:'POST', body:JSON.stringify({resourceID:parseInt(id)})});
+    document.getElementById('borrow-result').innerHTML = `<div class="alert alert-success">✅ Borrowed successfully! Due: <strong>${fmt(r.dueDate)}</strong> (${r.borrowDays} days)</div>`;
+    loadMyBorrows();
+    document.getElementById('borrow-id').value='';
+  } catch(e) { document.getElementById('borrow-result').innerHTML=`<div class="alert alert-error">❌ ${e.message}</div>`; }
+}
+
+async function doReturn() {
+  const id = document.getElementById('return-id').value;
+  if (!id) return toast('Enter a resource ID','error');
+  try {
+    const r = await api('/api/return', {method:'POST', body:JSON.stringify({resourceID:parseInt(id)})});
+    const msg = r.fine > 0
+      ? `✅ Returned. Overdue fine of <strong>${fmtCur(r.fine)}</strong> deducted.`
+      : `✅ Returned on time. No fine.`;
+    document.getElementById('borrow-result').innerHTML = `<div class="alert alert-${r.fine>0?'info':'success'}">${msg}</div>`;
+    loadMyBorrows();
+    document.getElementById('return-id').value='';
+  } catch(e) { document.getElementById('borrow-result').innerHTML=`<div class="alert alert-error">❌ ${e.message}</div>`; }
+}
+
+async function loadMyBorrows() {
+  if (!currentUser) return;
+  try {
+    const rows = await api('/api/history');
+    const active = rows.filter(r => r.returnDate === 0);
+    const now = Math.floor(Date.now()/1000);
+    const tbody = document.getElementById('my-borrows');
+    if (!active.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="padding:30px"><div class="es-icon">📭</div><p>No active borrows</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = active.map(r => {
+      const overdue = now > r.dueDate;
+      return `<tr>
+        <td><strong>${r.resourceTitle||r.title||'—'}</strong></td>
+        <td>${badgeType(r.resourceType||'book')}</td>
+        <td>${fmt(r.borrowDate)}</td>
+        <td>${fmt(r.dueDate)}</td>
+        <td>${overdue ? '<span class="badge badge-overdue">Overdue</span>' : '<span class="badge badge-active">Active</span>'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {}
+}
+
+// ===== HISTORY =====
+async function loadHistory() {
+  try {
+    const rows = await api('/api/history');
+    const tbody = document.getElementById('history-body');
+    fixHistoryHeader(isAdmin());
+    const cols = isAdmin() ? 7 : 6;
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="${cols}"><div class="empty-state"><div class="es-icon">📭</div><p>No borrow history yet</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(r => {
+      const userCell = isAdmin()
+        ? `<td><strong>${r.userName||'—'}</strong><br/><span style="font-size:11px;color:var(--muted)">#${r.userID}</span></td>`
+        : '';
+      return `<tr>
+        ${userCell}
+        <td><strong>${r.resourceTitle||'—'}</strong></td>
+        <td>${badgeType(r.resourceType||'book')}</td>
+        <td>${fmt(r.borrowDate)}</td>
+        <td>${fmt(r.dueDate)}</td>
+        <td>${r.returnDate ? fmt(r.returnDate) : '<span class="badge badge-active">Active</span>'}</td>
+        <td>${r.fine > 0 ? `<span style="color:var(--danger);font-weight:600">${fmtCur(r.fine)}</span>` : '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) { toast('Failed to load history','error'); }
+}
+
+function fixHistoryHeader(admin) {
+  const head = document.querySelector('#page-history thead tr');
+  if (!head) return;
+  head.innerHTML = admin
+    ? '<th>User</th><th>Resource</th><th>Type</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Fine</th>'
+    : '<th>Resource</th><th>Type</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Fine</th>';
+}
+
+// ===== MEMBERS =====
+async function loadMembers() {
+  try {
+    allMembers = await api('/api/users');
+    renderMembers();
+  } catch(e) { toast('Failed to load members','error'); }
+}
+
+function memberDetails(u) {
+  if (u.type === 'student') return `${u.department||'—'} · Roll ${u.rollNo||'—'}`;
+  if (u.type === 'teacher') return `${u.department||'—'} · ${u.designation||'—'}`;
+  if (u.type === 'staff') return u.position || '—';
+  if (u.type === 'premium') return u.membershipLevel ? `${u.membershipLevel} member` : 'Premium';
+  return u.address || '—';
+}
+
+function renderMembers() {
+  const search = document.getElementById('mem-search').value.toLowerCase();
+  const filtered = search ? allMembers.filter(u =>
+    u.name.toLowerCase().includes(search) ||
+    u.username.toLowerCase().includes(search) ||
+    String(u.userID).includes(search)
+  ) : allMembers;
+  const tbody = document.getElementById('mem-body');
+  if (!filtered.length) { tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="es-icon">👥</div><p>No members found</p></div></td></tr>`; return; }
+  tbody.innerHTML = filtered.map(u => `
+    <tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">#${u.userID}</td>
+      <td><strong>${u.name}</strong></td>
+      <td style="color:var(--muted)">${u.username}</td>
+      <td>${badgeUserType(u.type)}${u.membershipLevel ? ` <span style="font-size:11px;color:var(--gold);font-weight:600">${u.membershipLevel}</span>` : ''}</td>
+      <td style="font-size:12px;color:var(--muted)">${memberDetails(u)}</td>
+      <td style="font-family:'DM Mono',monospace">${fmtCur(u.balance)}</td>
+      <td>${u.isDeleted ? '<span class="badge badge-deleted">Deleted</span>' : '<span class="badge badge-active">Active</span>'}</td>
+      <td class="actions">${!u.isDeleted ? `
+        <button class="btn btn-sm btn-ghost" onclick="viewMember(${u.userID})">View</button>
+        <button class="btn btn-sm btn-gold" onclick="openAdminDeposit(${u.userID},'${u.name.replace(/'/g,"\\'")}')">Deposit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteMember(${u.userID},'${u.name.replace(/'/g,"\\'")}')">Delete</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function searchMemberById() {
+  const id = document.getElementById('mem-id-search').value;
+  if (!id) return toast('Enter a user ID','error');
+  try {
+    await viewMember(parseInt(id, 10));
+  } catch(e) { toast(e.message,'error'); }
+}
+
+let depositUserId = null;
+
+async function viewMember(id) {
+  const user = await api(`/api/users/${id}`);
+  const history = await api(`/api/history?userID=${id}`);
+  document.getElementById('user-detail-body').innerHTML = `
+    <div class="profile-detail-grid">
+      <div class="detail-item"><label>User ID</label><p>#${user.userID}</p></div>
+      <div class="detail-item"><label>Type</label><p>${badgeUserType(user.type)} ${user.membershipLevel||''}</p></div>
+      <div class="detail-item"><label>Username</label><p>@${user.username}</p></div>
+      <div class="detail-item"><label>Balance</label><p style="color:var(--success);font-weight:700">${fmtCur(user.balance)}</p></div>
+      <div class="detail-item"><label>Address</label><p>${user.address||'—'}</p></div>
+      <div class="detail-item"><label>Status</label><p>${user.isDeleted ? 'Deleted' : 'Active'}</p></div>
+      ${user.department ? `<div class="detail-item"><label>Department</label><p>${user.department}</p></div>` : ''}
+      ${user.rollNo ? `<div class="detail-item"><label>Roll No.</label><p>${user.rollNo}</p></div>` : ''}
+      ${user.designation ? `<div class="detail-item"><label>Designation</label><p>${user.designation}</p></div>` : ''}
+      ${user.position ? `<div class="detail-item"><label>Position</label><p>${user.position}</p></div>` : ''}
+    </div>`;
+  document.getElementById('user-borrow-history').innerHTML = history.length
+    ? `<h4 style="font-size:14px;margin-bottom:8px">Borrow History (${history.length})</h4>
+       <div style="max-height:200px;overflow:auto;font-size:13px">${history.slice(0,10).map(h =>
+         `<div style="padding:6px 0;border-bottom:1px solid var(--border)">${h.resourceTitle} · ${h.returnDate ? 'Returned' : 'Active'}</div>`
+       ).join('')}</div>`
+    : '<p style="font-size:13px;color:var(--muted)">No borrow history for this user.</p>';
+  openModal('modal-user');
+}
+
+function openAdminDeposit(id, name) {
+  depositUserId = id;
+  document.getElementById('deposit-user-label').textContent = `Depositing for ${name} (#${id})`;
+  document.getElementById('admin-deposit-amount').value = '';
+  openModal('modal-deposit');
+}
+
+async function submitAdminDeposit() {
+  const amount = parseFloat(document.getElementById('admin-deposit-amount').value);
+  if (!amount || amount <= 0) return toast('Enter a valid amount','error');
+  try {
+    const r = await api(`/api/users/${depositUserId}/deposit`, {method:'POST',body:JSON.stringify({amount})});
+    toast(`Deposited Rs.${amount}. New balance: ${fmtCur(r.newBalance)}`,'success');
+    closeModal('modal-deposit');
+    loadMembers();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function exportReport() {
+  try {
+    const res = await fetch('/api/reports/export', { credentials: 'include' });
+    if (!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'library-report.txt';
+    a.click();
+    toast('Report downloaded','success');
+  } catch(e) { toast(e.message,'error'); }
+}
+
+function initDonations() { updateDonFields(); }
+
+function updateDonFields() {
+  const type = document.getElementById('don-type').value;
+  const fields = {
+    book: `<div class="form-row"><div class="form-group"><label>ISBN</label><input id="don-isbn"/></div><div class="form-group"><label>Publisher</label><input id="don-publisher"/></div></div><div class="form-group"><label>Year</label><input type="number" id="don-year"/></div>`,
+    dvd: `<div class="form-row"><div class="form-group"><label>Director</label><input id="don-director"/></div><div class="form-group"><label>Genre</label><input id="don-genre"/></div></div>`,
+    audiobook: `<div class="form-row"><div class="form-group"><label>Narrator</label><input id="don-narrator"/></div><div class="form-group"><label>Format</label><input id="don-format" placeholder="MP3"/></div></div>`,
+    magazine: `<div class="form-row"><div class="form-group"><label>Publisher</label><input id="don-publisher"/></div><div class="form-group"><label>Publication Date</label><input id="don-pubdate"/></div></div>`,
+    newspaper: `<div class="form-row"><div class="form-group"><label>Publisher</label><input id="don-publisher"/></div><div class="form-group"><label>Region</label><input id="don-region"/></div></div><div class="form-group"><label>Edition Date</label><input id="don-edition"/></div>`
+  };
+  document.getElementById('don-extra').innerHTML = fields[type] || '';
+}
+
+async function submitDonation() {
+  const g = id => document.getElementById(id)?.value || '';
+  const type = document.getElementById('don-type').value;
+  const body = {
+    userID: parseInt(document.getElementById('don-user-id').value, 10),
+    type,
+    title: g('don-title'),
+    authorCreator: g('don-author'),
+    category: g('don-category'),
+    totalCopies: parseInt(g('don-copies'), 10) || 1
+  };
+  if (!body.userID || !body.title) return toast('User ID and title are required','error');
+  if (type === 'book') { body.ISBN = g('don-isbn'); body.publisher = g('don-publisher'); body.yearPublished = parseInt(g('don-year'), 10) || 0; }
+  if (type === 'dvd') { body.director = g('don-director'); body.genre = g('don-genre'); }
+  if (type === 'audiobook') { body.narrator = g('don-narrator'); body.format = g('don-format'); }
+  if (type === 'magazine') { body.publisher = g('don-publisher'); body.publicationDate = g('don-pubdate'); }
+  if (type === 'newspaper') { body.publisher = g('don-publisher'); body.region = g('don-region'); body.editionDate = g('don-edition'); }
+  try {
+    const r = await api('/api/donations', {method:'POST', body:JSON.stringify(body)});
+    toast(`Donation accepted! Resource #${r.resourceID}. Donor rewarded Rs.${r.reward}`,'success');
+    ['don-user-id','don-title','don-author','don-category'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  } catch(e) { toast(e.message,'error'); }
+}
+
+function searchMembers() { renderMembers(); }
+
+async function deleteMember(id, name) {
+  if (!confirm(`Delete member "${name}"? This action is soft-delete.`)) return;
+  try {
+    await api(`/api/users/${id}`, {method:'DELETE'});
+    toast(`${name} deleted`,'success');
+    loadMembers();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+// ===== ISSUED =====
+async function loadIssued() {
+  try {
+    const rows = await api('/api/issued');
+    const tbody = document.getElementById('issued-body');
+    if (!rows.length) { tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="es-icon">✅</div><p>No resources currently issued</p></div></td></tr>`; return; }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">#${r.resourceID}</td>
+        <td><strong>${r.title}</strong></td>
+        <td>${badgeType(r.type)}</td>
+        <td>${r.totalCopies}</td>
+        <td>${r.availableCopies}</td>
+        <td><strong style="color:var(--rust)">${r.issuedCopies}</strong></td>
+      </tr>
+    `).join('');
+  } catch(e) { toast('Failed to load issued','error'); }
+}
+
+// ===== FINES =====
+async function loadFines() {
+  try {
+    const rows = await api('/api/fines');
+    const tbody = document.getElementById('fines-body');
+    if (!rows.length) { tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="es-icon">🎉</div><p>No overdue resources!</p></div></td></tr>`; return; }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">#${r.userID||'—'}</td>
+        <td><strong>${r.userName}</strong></td>
+        <td>${r.resourceTitle}</td>
+        <td>${fmt(r.borrowDate)}</td>
+        <td style="color:var(--danger)">${fmt(r.dueDate)}</td>
+        <td><span class="badge badge-overdue">${r.daysLate} day${r.daysLate!==1?'s':''}</span></td>
+        <td><strong style="color:var(--danger)">${fmtCur(r.pendingFine)}</strong></td>
+      </tr>
+    `).join('');
+  } catch(e) { toast('Failed to load fines','error'); }
+}
+
+// ===== PROFILE =====
+async function loadProfile() {
+  try {
+    const user = await api('/api/me');
+    currentUser = user;
+    const initials = user.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('profile-info').innerHTML = `
+      <div class="profile-avatar">${initials}</div>
+      <div class="profile-name">${user.name}</div>
+      <div class="profile-meta">
+        ${badgeUserType(user.type)}
+        ${user.membershipLevel ? `<span class="badge badge-premium">${user.membershipLevel}</span>` : ''}
+        <span style="font-size:13px;color:var(--muted)">@${user.username}</span>
+      </div>
+      <div class="profile-detail-grid">
+        <div class="detail-item"><label>Balance</label><p style="color:var(--success);font-weight:700">${fmtCur(user.balance)}</p></div>
+        <div class="detail-item"><label>Address</label><p>${user.address||'—'}</p></div>
+        ${user.department ? `<div class="detail-item"><label>Department</label><p>${user.department}</p></div>` : ''}
+        ${user.rollNo ? `<div class="detail-item"><label>Roll No.</label><p>${user.rollNo}</p></div>` : ''}
+        ${user.designation ? `<div class="detail-item"><label>Designation</label><p>${user.designation}</p></div>` : ''}
+        ${user.position ? `<div class="detail-item"><label>Position</label><p>${user.position}</p></div>` : ''}
+      </div>
+    `;
+  } catch(e) {}
+}
+
+async function doDeposit() {
+  const amount = parseFloat(document.getElementById('deposit-amount').value);
+  if (!amount || amount <= 0) return toast('Enter a valid amount','error');
+  try {
+    const r = await api(`/api/users/${currentUser.userID}/deposit`, {method:'POST',body:JSON.stringify({amount})});
+    toast(`Rs. ${amount} deposited. New balance: ${fmtCur(r.newBalance)}`,'success');
+    if (r.upgraded) toast(`🎉 Upgraded to ${r.level} Premium!`,'info');
+    document.getElementById('deposit-amount').value='';
+    loadProfile();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function doChangePass() {
+  const oldPassword = document.getElementById('old-pass').value;
+  const newPassword = document.getElementById('new-pass').value;
+  if (!oldPassword||!newPassword) return toast('Fill in both fields','error');
+  try {
+    await api(`/api/users/${currentUser.userID}/password`, {method:'PUT',body:JSON.stringify({oldPassword,newPassword})});
+    toast('Password updated','success');
+    document.getElementById('old-pass').value='';
+    document.getElementById('new-pass').value='';
+  } catch(e) { toast(e.message,'error'); }
+}
+
+// ===== REGISTER =====
+function showRegisterModal() {
+  resetRegisterOtp();
+  updateRegFields();
+  const otpSection = document.getElementById('reg-otp-section');
+  if (isAdmin()) {
+    otpSection.style.display = 'none';
+    document.getElementById('reg-details').style.opacity = '1';
+    document.getElementById('reg-details').style.pointerEvents = '';
+    regEmailVerified = true;
+  } else {
+    otpSection.style.display = '';
+  }
+  openModal('modal-register');
+}
+
+function updateRegFields() {
+  const type = document.getElementById('reg-type').value;
+  const fields = {
+    student: `<div class="form-row">
+      <div class="form-group"><label>Department</label><input type="text" id="reg-dept" placeholder="Computer Science"/></div>
+      <div class="form-group"><label>Roll Number</label><input type="number" id="reg-roll"/></div>
+    </div>`,
+    teacher: `<div class="form-row">
+      <div class="form-group"><label>Department</label><input type="text" id="reg-dept" placeholder="Physics"/></div>
+      <div class="form-group"><label>Designation</label><input type="text" id="reg-desig" placeholder="Professor"/></div>
+    </div>`,
+    staff: `<div class="form-group"><label>Position</label><input type="text" id="reg-pos" placeholder="Librarian"/></div>`,
+    premium: `<div class="form-group"><label>Membership Level</label><select id="reg-level"><option value="Gold">Gold</option><option value="Diamond">Diamond</option><option value="Silver">Silver</option></select></div>`
+  };
+  document.getElementById('reg-extra').innerHTML = fields[type]||'';
+}
+
+async function doRegister() {
+  const type = document.getElementById('reg-type').value;
+  const g = id => document.getElementById(id)?.value||'';
+  const email = g('reg-email').trim();
+  const body = {
+    type, name:g('reg-name'), username:g('reg-username'), password:g('reg-pass'),
+    address:g('reg-address'), balance:parseFloat(g('reg-balance'))||0, email
+  };
+  if (type==='student')  { body.department=g('reg-dept'); body.rollNo=parseInt(g('reg-roll'))||0; }
+  if (type==='teacher')  { body.department=g('reg-dept'); body.designation=g('reg-desig'); }
+  if (type==='staff')    { body.position=g('reg-pos'); }
+  if (type==='premium')  { body.membershipLevel=g('reg-level'); }
+  if (!body.username||!body.password||!body.name) return toast('Fill in required fields','error');
+  if (!email) return toast('Email is required','error');
+  if (!isAdmin()) {
+    if (!regEmailVerified || !registrationToken) return toast('Verify OTP first','error');
+    body.registrationToken = registrationToken;
+  } else {
+    body.skipOtp = true;
+  }
+  try {
+    await api('/api/users/register', {method:'POST',body:JSON.stringify(body)});
+    toast('Account created! You can now sign in.','success');
+    closeModal('modal-register');
+    resetRegisterOtp();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+// ===== MODAL HELPERS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+</script>
+</body>
+</html>

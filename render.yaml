@@ -1,0 +1,25 @@
+# Render.com deployment — https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: library-lms
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/library.db
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+    disk:
+      name: lms-data
+      mountPath: /var/data
+      sizeGB: 1
