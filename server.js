@@ -287,7 +287,7 @@ app.get('/api/me', requireAuth, (req, res) => {
 
 app.get('/api/users', requireAdmin, (req, res) => {
   const users = db.prepare(
-    'SELECT * FROM users WHERE type!="admin"'
+    'SELECT * FROM users WHERE type!=\'admin\''
   ).all().map(({ password, ...u }) => u);
 
   res.json(users);
@@ -859,7 +859,7 @@ app.get('/api/stats', requireAdmin, (req, res) => {
   const now = Math.floor(Date.now()/1000);
 
   const totalUsers = db.prepare(
-    'SELECT COUNT(*) as c FROM users WHERE isDeleted=0 AND type!="admin"'
+    'SELECT COUNT(*) as c FROM users WHERE isDeleted=0 AND type!=\'admin\''
   ).get().c;
 
   const totalResources = db.prepare(
